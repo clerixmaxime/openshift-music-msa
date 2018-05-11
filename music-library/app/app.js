@@ -1,12 +1,19 @@
 /*eslint-env node*/
 
-/*eslint-disable radix */
+/*eslint-disable radix, no-unused-params, unknown-require*/
 var express = require('express');
+var bodyParser = require('body-parser');
 var app = express();
 var MongoClient = require('mongodb').MongoClient;
+var probe = require('kube-probe');
 
 var port = process.env.PORT || 8080;
 var mongodb_url = "mongodb://" + process.env.DB_USER + ":" + process.env.DB_PASSWORD + "@"  + process.env.DB_HOST + ":" + process.env.DB_PORT + "/" + process.env.DB_NAME
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
+probe(app);
 
 app.get('/', function (req, res) {
   res.send('Welcome to my music app!');
@@ -65,7 +72,6 @@ app.get('/music/:id', function (req, res) {
         var collection = client.db("music").collection("music");
         
         var id = parseInt(req.params.id);
-        console.log(id);
         
         collection.findOne({'id': id}, function(err,item){
             if (err) {
@@ -88,8 +94,9 @@ app.delete('/music/:id', function (req, res) {
         }
         
         var collection = client.db("music").collection("music");
+        var id = parseInt(req.params.id);
         
-        collection.remove({"id": req.params.id}, function (err, item) {
+        collection.remove({'id': id}, function (err, item) {
             if (err) {
                 res.status(500).send(err);
             } else {
@@ -100,5 +107,5 @@ app.delete('/music/:id', function (req, res) {
 });
 
 app.listen(port, function () {
-  console.log('Example app listening on port 3000!');
+  console.log('Example app listening on port : ' + port);
 });
